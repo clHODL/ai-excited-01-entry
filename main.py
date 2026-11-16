@@ -1,41 +1,28 @@
-"""ai-excited-01 entry: write the entry image to the output directory.
+#!/usr/bin/env python3
+"""Molten-gold phoenix bursting from a storm sea.
 
-Reads image.png next to this script and writes it as entry.png into the
-directory from the MAKEFUN_OUTPUT_DIR environment variable, or /output
-when that variable is not set. The output directory is created if needed.
-Running the program twice produces a byte-identical entry.png.
+Copies the entry artwork (image.png) to the output directory as entry.png.
+Deterministic: the output is a byte-for-byte copy of image.png, so repeated
+runs produce identical files.
+
+Usage:
+    mkdir -p out && MAKEFUN_OUTPUT_DIR=out python3 main.py
 """
 
 import os
+import shutil
 import sys
-from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-SOURCE = HERE / "image.png"
-OUTPUT_NAME = "entry.png"
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 
 def main() -> int:
-    if not SOURCE.is_file():
-        print(f"error: source image not found: {SOURCE}", file=sys.stderr)
-        return 1
-    out_dir = Path(os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output")
-    out_dir = out_dir.expanduser().resolve()
-    out_dir.mkdir(parents=True, exist_ok=True)
-    dest = out_dir / OUTPUT_NAME
-    if dest.resolve() == SOURCE:
-        print(f"error: output path would overwrite the source: {dest}",
-              file=sys.stderr)
-        return 1
-    with open(SOURCE, "rb") as src:
-        data = src.read()
-    with open(dest, "wb") as out:
-        out.write(data)
-    # Post-write check: what landed on disk must match the source exactly.
-    if dest.stat().st_size != len(data):
-        print(f"error: wrote {dest} but size mismatch", file=sys.stderr)
-        return 1
-    print(f"wrote {dest} ({len(data)} bytes)")
+    source = os.path.join(HERE, "image.png")
+    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output"
+    os.makedirs(out_dir, exist_ok=True)
+    dest = os.path.join(out_dir, "entry.png")
+    shutil.copyfile(source, dest)
+    print(f"wrote {dest}")
     return 0
 
 
